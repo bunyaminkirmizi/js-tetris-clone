@@ -307,24 +307,6 @@ game.prototype.build_border = function () {
 	}
 };
 
-function random_hex_color() {
-	return tetris_colors[Math.floor(Math.random() * this.tetris_colors.length)];
-}
-
-var iterval = 0;
-function header_animation_itreation() {
-	let a = document.getElementById(this.iterval);
-	a.style.color = random_hex_color();
-	this.iterval++;
-	if (this.iterval > 5) {
-		this.iterval = 0; //reset iterval
-	}
-}
-
-const headeranimationcycle = setInterval(() => {
-	header_animation_itreation();
-}, 60);
-
 function gameover() {
 	this.keyactions = null;
 	clearInterval(gamecycle);
