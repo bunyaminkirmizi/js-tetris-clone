@@ -1,0 +1,30 @@
+.game-container {
+	left: 50%;
+	transform: translateX(-50%);
+	text-align: center;
+	display: grid;
+	grid-template-columns: auto auto auto auto auto auto auto auto auto auto auto auto;
+	background-color: black;
+	padding: 0px;
+	position: absolute;
+}
+body {
+	text-align: center;
+	background-color: black;
+}
+.block {
+	background-color: #fff;
+	border: 10px, solid red;
+	border-color: black;
+	padding: 0px;
+	border: 0.1px;
+	margin: 0.5px;
+	height: 25px;
+	width: 25px;
+	font-size: 15px;
+	text-align: center;
+}
+
+.game-over-text {
+	color: red;
+}
