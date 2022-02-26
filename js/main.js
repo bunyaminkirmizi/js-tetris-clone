@@ -32,19 +32,14 @@ block.prototype.fill_and_paint = function (color) {
 };
 
 //@pieces
-function piece(block_coordinates, color) {
+function piece(block_coordinates, color, origin) {
 	this.color = color;
 	this.rotation_block = 2;
+	this.origin = origin;
 	this.blocks = block_coordinates.map((coordinat) => {
 		return new block(coordinat[0], coordinat[1]);
 	});
 }
-
-piece.prototype.rotate = function () {
-	this.blocks.map((block) => {
-		block.rotate_blocks(this.rotation_block);
-	});
-};
 
 piece.prototype.is_empty = function () {
 	let control = true;
@@ -81,15 +76,17 @@ piece.prototype.move_down = function () {
 	const new_coordinates = this.blocks.map((e) => {
 		return [e.x, e.y + 1];
 	});
-	const new_piece = new piece(new_coordinates, this.color);
-	// console.log(new_piece,new_piece.is_empty())
+	let neworigin = null;
+	if (this.origin) {
+		neworigin = [this.origin[0], this.origin[1] + 1];
+	}
+
+	const new_piece = new piece(new_coordinates, this.color, neworigin);
 	if (new_piece.is_empty()) {
 		this.paint("#fff");
 		new_piece.paint(this.color);
 		return new_piece;
 	} else {
-		console.log("it is not possible to move down");
-		// this.fill_and_paint("grey");
 		this.fill();
 		return null;
 	}
@@ -98,8 +95,12 @@ piece.prototype.move_right = function () {
 	const new_coordinates = this.blocks.map((e) => {
 		return [e.x + 1, e.y];
 	});
-	const new_piece = new piece(new_coordinates, this.color);
-	console.log(new_piece, new_piece.is_empty());
+	let neworigin = null;
+	if (this.origin) {
+		neworigin = [this.origin[0] + 1, this.origin[1]];
+	}
+
+	const new_piece = new piece(new_coordinates, this.color, neworigin);
 	if (new_piece.is_empty()) {
 		this.paint("#fff");
 		new_piece.paint(this.color);
@@ -113,7 +114,12 @@ piece.prototype.move_left = function () {
 	const new_coordinates = this.blocks.map((e) => {
 		return [e.x - 1, e.y];
 	});
-	const new_piece = new piece(new_coordinates, this.color);
+	let neworigin = null;
+	if (this.origin) {
+		neworigin = [this.origin[0] - 1, this.origin[1]];
+	}
+
+	const new_piece = new piece(new_coordinates, this.color, neworigin);
 	console.log(new_piece, new_piece.is_empty());
 	if (new_piece.is_empty()) {
 		this.paint("#fff");
@@ -125,6 +131,38 @@ piece.prototype.move_left = function () {
 	}
 };
 
+piece.prototype.rotate = function () {
+	if (this.origin === null) {
+		return this;
+	}
+	let x1 = this.origin[0];
+	let y1 = this.origin[1];
+
+	const new_coordinates = this.blocks.map((e) => {
+		let x2asoriginx1 = e.x - x1;
+		let y2asoriginy2 = e.y - y1;
+
+		let rotate_x = -y2asoriginy2;
+		let rotate_y = -x2asoriginx1;
+
+		let coor_x = x1 + rotate_x;
+		let coor_y = y1 - rotate_y;
+		// console.log(
+		// 	`origin:(${e.x},${e.y})=>(${x1},${y1})->(${x2asoriginx1},${y2asoriginy2})->(${rotate_x},${rotate_y})->(${coor_x},${coor_y})`
+		// );
+		return [coor_x, coor_y];
+	});
+
+	const new_piece = new piece(new_coordinates, this.color, this.origin);
+	if (new_piece.is_empty()) {
+		this.paint("#fff");
+		new_piece.paint(this.color);
+		return new_piece;
+	} else {
+		console.log("it is not possible to rotate");
+		return this;
+	}
+};
 // @game
 function game() {
 	this.speed = 150;
@@ -158,6 +196,7 @@ function game() {
 				[7, 1],
 			],
 			color: this.tetris_colors.block.cyan,
+			origin: [5, 1],
 		},
 		{
 			coordinates: [
@@ -167,6 +206,7 @@ function game() {
 				[6, 2],
 			],
 			color: this.tetris_colors.block.blue,
+			origin: [5, 1],
 		},
 		{
 			coordinates: [
@@ -176,6 +216,7 @@ function game() {
 				[6, 1],
 			],
 			color: this.tetris_colors.block.orange,
+			origin: [5, 1],
 		},
 		{
 			coordinates: [
@@ -185,6 +226,7 @@ function game() {
 				[6, 2],
 			],
 			color: this.tetris_colors.block.yellow,
+			origin: null,
 		},
 		{
 			coordinates: [
@@ -194,6 +236,7 @@ function game() {
 				[6, 2],
 			],
 			color: this.tetris_colors.block.red,
+			origin: [5, 2],
 		},
 		{
 			coordinates: [
@@ -203,6 +246,7 @@ function game() {
 				[4, 2],
 			],
 			color: this.tetris_colors.block.green,
+			origin: [5, 2],
 		},
 		{
 			coordinates: [
@@ -212,8 +256,8 @@ function game() {
 				[4, 2],
 			],
 			color: this.tetris_colors.block.purple,
+			origin: [5, 2],
 		},
-		// {},
 	];
 }
 
@@ -241,8 +285,10 @@ game.prototype.spawn_block = function () {
 
 	this.active_piece = new piece(
 		this.tetris_pieces[random].coordinates,
-		this.tetris_pieces[random].color
+		this.tetris_pieces[random].color,
+		this.tetris_pieces[random].origin
 	);
+	this.active_piece.paint(this.active_piece.color);
 	if (this.active_piece.is_full()) {
 		this.gameover();
 		return;
@@ -252,16 +298,20 @@ game.prototype.spawn_block = function () {
 };
 
 game.prototype.button_down_action = function () {
+	this.active_piece = this.active_piece.move_down();
+
 	if (this.active_piece == null) {
 		this.spawn_block();
 	}
-	this.active_piece = this.active_piece.move_down();
 };
 game.prototype.button_left_action = function () {
 	this.active_piece = this.active_piece.move_left();
 };
 game.prototype.button_right_action = function () {
 	this.active_piece = this.active_piece.move_right();
+};
+game.prototype.button_up_action = function () {
+	this.active_piece = this.active_piece.rotate();
 };
 
 game.prototype.build_board = function () {
@@ -289,10 +339,17 @@ game.prototype.is_border = function (x, y) {
 game.prototype.gameover = function () {
 	clearInterval(this.gamecycle);
 	this.game_status = 0;
-	console.log("last piece", this.active_piece);
-
+	console.log("game is over!");
+	this.deactivate_controls();
 	const mainelement = window.document.getElementsByTagName("main")[0];
 	mainelement.appendChild = '<h1 class="game-over-text" >game over</h1>';
+};
+
+game.prototype.deactivate_controls = function () {
+	this.button_down_action = () => {};
+	this.button_left_action = () => {};
+	this.button_up_action = () => {};
+	this.button_right_action = () => {};
 };
 
 game.prototype.build_border = function () {
@@ -320,7 +377,7 @@ newgame.start();
 
 this.keyactions = {
 	ArrowUp: () => {
-		newgame.button_up();
+		newgame.button_up_action();
 		//TODO: ROTATE ACTION
 	},
 	ArrowDown: () => {
