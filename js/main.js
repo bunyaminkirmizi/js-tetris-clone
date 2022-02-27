@@ -278,9 +278,9 @@ game.prototype.start = function () {
 	this.build_board();
 	this.build_border();
 	this.spawn_block();
-	// this.gamecycle = setInterval(() => {
-	// 	this.button_down_action();
-	// }, this.speed);
+	this.gamecycle = setInterval(() => {
+		this.button_down_action();
+	}, this.speed);
 	this.game_status = 1;
 };
 
@@ -352,11 +352,16 @@ game.prototype.clear_line = function (line_number) {
 	}
 };
 
+game.prototype.add_score = function (increase) {
+	this.score += increase;
+	document.getElementById("score").textContent = this.score;
+};
 game.prototype.check_lines = function () {
 	for (let index = 1; index < window.board.length - 1; index++) {
 		if (this.is_line_full(index)) {
 			console.log("line ", index, " full");
 			this.clear_line(index);
+			this.add_score(5);
 		}
 	}
 	return false;
