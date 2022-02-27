@@ -7,28 +7,41 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/button.css">
 	<link rel="stylesheet" href="css/game.css">
 </head>
 
 <body>
-	<h1 id="game-header" class="menu header">
-		<span id="0">T</span>
-		<span id="1">E</span>
-		<span id="2">T</span>
-		<span id="3">R</span>
-		<span id="4">I</span>
-		<span id="5">S</span>
-	</h1>
 
-	<div>
+	<div id="container">
+		<div id="left">
+			<h1 class="header" id="score-board" hidden="">scoreboard <br /><span id="score">0</span></h1>
+			<h1 class="header" id="game-over-text" hidden="">game over</h1>
+		</div>
 
-		<main class="game-container">
+		<main id="game-table" class="game-container">
 
 		</main>
-		<div class="header scoreboard">
-			<h1>scoreboard <br /><span id="score">0</span></h1>
-		</div>
 	</div>
+
+	<div id="menu">
+
+		<br><br />
+		<br><br />
+		<br><br />
+		<br><br />
+		<br><br />
+		<br><br />
+		<a href="javascript:(new game()).start();" id="start-game" class="btn-push navy">start
+			game</a>
+		<br><br />
+		<br><br />
+		<a href="javascript:return false;" id="start-game" class="btn-push orange">options</a>
+		<br><br />
+		<br><br />
+		<a href="javascript:() => return false;" id="start-game" class="btn-push red">high scores</a>
+	</div>
+
 
 	<audio controls="" autoplay="" loop="" hidden="">
 		<source src="sounds/soundatrack.mp3" type="audio/mpeg">

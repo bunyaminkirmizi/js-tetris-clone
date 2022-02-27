@@ -1,4 +1,4 @@
-this.board;
+this.board = null;
 
 function get_block(x, y) {
 	return document.getElementById(`${x}-${y}`);
@@ -178,13 +178,47 @@ piece.prototype.rotate = function () {
 };
 // @game
 function game() {
+	this.board = null;
 	this.speed = 150;
 	this.xsize = 12;
 	this.ysize = 22;
-	this.active_piece = null;
 	this.score = 0;
-	this.game_status = 0;
-	this.gamecycle = null;
+	this.keyactions = {
+		ArrowUp: () => {
+			this.button_up_action();
+			//TODO: ROTATE ACTION
+		},
+		ArrowDown: () => {
+			this.button_down_action();
+		},
+		ArrowLeft: () => {
+			this.button_left_action();
+		},
+		ArrowRight: () => {
+			this.button_right_action();
+		},
+		KeyM: () => {
+			//TODO: STOP MUSIC
+		},
+		KeyR: () => {
+			change_active_block();
+			//TODO: RESET GAME MUSIC
+		},
+	};
+
+	this.listener = document.addEventListener(
+		"keydown",
+		(event) => {
+			var name = event.key;
+			var code = event.code;
+			try {
+				this.keyactions[code].call();
+			} catch {
+				// console.log(`[name='${name}' code='${code}'] is not defined`)
+			}
+		},
+		false
+	);
 	this.tetris_colors = {
 		block: {
 			cyan: "#00ffff",
@@ -274,16 +308,31 @@ function game() {
 	];
 }
 
+game.prototype.hide_menu = function () {
+	document.getElementById("menu").setAttribute("hidden", '""');
+};
+
+game.prototype.show_menu = function () {
+	document.getElementById("menu").removeAttribute("hidden");
+};
+
 game.prototype.start = function () {
+	document.getElementById("game-table").innerHTML = "";
+	window.board = null;
+	this.add_score(0);
+	document.getElementById("score-board").removeAttribute("hidden");
+	this.hide_game_over_text();
+	this.hide_menu();
 	this.build_board();
 	this.build_border();
 	this.spawn_block();
 	this.gamecycle = setInterval(() => {
 		this.button_down_action();
 	}, this.speed);
-	this.game_status = 1;
 };
-
+game.prototype.hide_game_over_text = function () {
+	document.getElementById("game-over-text").setAttribute("hidden", "");
+};
 game.prototype.random_color = function () {
 	var randomProperty = function (obj) {
 		var keys = Object.keys(obj);
@@ -385,7 +434,7 @@ game.prototype.build_board = function () {
 			newblock.classList.add("block");
 			window.board[y][x] = true;
 			newblock.id = `${x}-${y}`;
-			const gameboard = document.querySelector("main");
+			let gameboard = document.querySelector("main");
 			gameboard.appendChild(newblock);
 		}
 	}
@@ -399,12 +448,12 @@ game.prototype.is_border = function (x, y) {
 };
 
 game.prototype.gameover = function () {
+	this.show_menu();
+	this.keyactions = null;
 	clearInterval(this.gamecycle);
-	this.game_status = 0;
+	document.getElementById("game-over-text").removeAttribute("hidden");
 	console.log("game is over!");
-	this.deactivate_controls();
-	const mainelement = window.document.getElementsByTagName("main")[0];
-	mainelement.appendChild = '<h1 class="game-over-text" >game over</h1>';
+	// this.deactivate_controls();
 };
 
 game.prototype.deactivate_controls = function () {
@@ -425,51 +474,3 @@ game.prototype.build_border = function () {
 		}
 	}
 };
-
-function gameover() {
-	this.keyactions = null;
-	clearInterval(gamecycle);
-	gamescreen = document.getElementsByTagName("main");
-	gamescreen[0].innerHTML = `<h1 style="color:red;">game is over<br/> your score is: ${game.score}</h1>`;
-	clearInterval(headeranimationcycle);
-}
-
-const newgame = new game();
-newgame.start();
-
-this.keyactions = {
-	ArrowUp: () => {
-		newgame.button_up_action();
-		//TODO: ROTATE ACTION
-	},
-	ArrowDown: () => {
-		newgame.button_down_action();
-	},
-	ArrowLeft: () => {
-		newgame.button_left_action();
-	},
-	ArrowRight: () => {
-		newgame.button_right_action();
-	},
-	KeyM: () => {
-		//TODO: STOP MUSIC
-	},
-	KeyR: () => {
-		change_active_block();
-		//TODO: RESET GAME MUSIC
-	},
-};
-
-document.addEventListener(
-	"keydown",
-	(event) => {
-		var name = event.key;
-		var code = event.code;
-		try {
-			this.keyactions[code].call();
-		} catch {
-			// console.log(`[name='${name}' code='${code}'] is not defined`)
-		}
-	},
-	false
-);
