@@ -11,8 +11,9 @@ function block(x, y) {
 	}
 	this.x = x;
 	this.y = y;
-	this.element = document.getElementById(`${x}-${y}`);
+	this.element = document.getElementById(`${this.x}-${this.y}`);
 }
+
 block.prototype.is_empty = function () {
 	return window.board[this.y][this.x];
 };
@@ -25,7 +26,19 @@ block.prototype.fill = function () {
 block.prototype.paint = function (color) {
 	this.element.style.backgroundColor = color;
 };
+block.prototype.replace_and_paint = function (x, y) {
+	if (this.element) {
+		this.color = this.element.style.backgroundColor;
+	}
 
+	this.x = x;
+	this.y = y;
+
+	this.element = document.getElementById(`${this.x}-${this.y}`);
+	if (this.color) {
+		this.paint(this.color);
+	}
+};
 block.prototype.fill_and_paint = function (color) {
 	this.paint(color);
 	this.fill();
@@ -34,7 +47,6 @@ block.prototype.fill_and_paint = function (color) {
 //@pieces
 function piece(block_coordinates, color, origin) {
 	this.color = color;
-	this.rotation_block = 2;
 	this.origin = origin;
 	this.blocks = block_coordinates.map((coordinat) => {
 		return new block(coordinat[0], coordinat[1]);
@@ -76,6 +88,7 @@ piece.prototype.move_down = function () {
 	const new_coordinates = this.blocks.map((e) => {
 		return [e.x, e.y + 1];
 	});
+
 	let neworigin = null;
 	if (this.origin) {
 		neworigin = [this.origin[0], this.origin[1] + 1];
@@ -265,13 +278,12 @@ game.prototype.start = function () {
 	this.build_board();
 	this.build_border();
 	this.spawn_block();
-	this.gamecycle = setInterval(() => {
-		this.button_down_action();
-	}, this.speed);
+	// this.gamecycle = setInterval(() => {
+	// 	this.button_down_action();
+	// }, this.speed);
 	this.game_status = 1;
 };
 
-game.prototype.full_line_remove = function () {};
 game.prototype.random_color = function () {
 	var randomProperty = function (obj) {
 		var keys = Object.keys(obj);
@@ -293,16 +305,61 @@ game.prototype.spawn_block = function () {
 		this.gameover();
 		return;
 	} else {
-		console.log("placed", this.active_piece);
+		console.log("spawned", this.active_piece);
 	}
 };
 
 game.prototype.button_down_action = function () {
 	this.active_piece = this.active_piece.move_down();
-
+	this.check_lines();
 	if (this.active_piece == null) {
 		this.spawn_block();
 	}
+};
+
+game.prototype.is_line_full = function (line_number) {
+	let line = window.board[line_number];
+	for (let index = 0; index < line.length; index++) {
+		const element = line[index];
+		if (element == true) {
+			return false;
+		}
+	}
+	return true;
+};
+
+game.prototype.copy_paste_line = function (line_source, line_destionation) {
+	for (let j = 0; j < this.xsize; j++) {
+		let copy_paste_block = new block(j, line_source);
+		copy_paste_block.replace_and_paint(j, line_destionation);
+	}
+};
+
+game.prototype.clear_line = function (line_number) {
+	if (line_number > this.ysize - 2 || line_number < 1) {
+		console.log("illegal clear");
+		return;
+	}
+
+	let push_new_line = new Array(this.xsize - 2).fill(true);
+	push_new_line.push(false);
+	push_new_line.unshift(false);
+
+	window.board.splice(line_number, 1);
+	window.board.splice(1, 0, push_new_line);
+	for (let i = line_number; i > 1; i--) {
+		this.copy_paste_line(i - 1, i);
+	}
+};
+
+game.prototype.check_lines = function () {
+	for (let index = 1; index < window.board.length - 1; index++) {
+		if (this.is_line_full(index)) {
+			console.log("line ", index, " full");
+			this.clear_line(index);
+		}
+	}
+	return false;
 };
 game.prototype.button_left_action = function () {
 	this.active_piece = this.active_piece.move_left();
