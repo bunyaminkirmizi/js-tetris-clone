@@ -179,7 +179,7 @@ piece.prototype.rotate = function () {
 // @game
 function game() {
 	this.board = null;
-	this.speed = 150;
+	this.speed = 250;
 	this.xsize = 12;
 	this.ysize = 22;
 	this.score = 0;
